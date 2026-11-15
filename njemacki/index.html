@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Njemački jezik – OS Online učionica</title>
+<style>
+:root{--ink:#203047;--muted:#64748b;--line:#dce5f0;--blue:#2457a7;--bg:#f3f7fc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+main{max-width:850px;margin:0 auto;padding:34px 18px 55px}
+header{text-align:center;margin:10px 0 25px}
+.icon{font-size:42px}
+h1{font-size:clamp(1.8rem,5vw,2.5rem);margin:4px 0;color:var(--blue)}
+header p{color:var(--muted);margin:6px 0}
+.home{display:inline-block;margin:10px 0 20px;color:var(--blue);text-decoration:none}
+.home:hover{text-decoration:underline}
+.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 5px 18px #1e293b0a}
+h2{font-size:1.15rem;margin:0 0 12px}
+ul{list-style:none;padding:0;margin:0}
+li+li{border-top:1px solid #edf1f6}
+li a{display:block;padding:13px 10px;color:var(--blue);text-decoration:none;border-radius:8px;overflow-wrap:anywhere}
+li a:hover{background:#eef5ff;text-decoration:underline}
+.status{color:var(--muted);padding:8px 2px}
+.error{color:#a3342b}
+footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:24px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="icon">🇩🇪</div>
+  <h1>Njemački jezik</h1>
+  <p>Odaberi vježbu ili provjeru znanja.</p>
+  <a class="home" href="../">← Povratak na početnu stranicu</a>
+</header>
+<section class="panel">
+  <h2>Dostupni materijali</h2>
+  <div id="status" class="status">Učitavam popis testova…</div>
+  <ul id="tests"></ul>
+</section>
+<footer>OS · Online učionica</footer>
+</main>
+<script>
+const OWNER = "ik-git-git";
+const REPO = "OS";
+const BRANCH = "main";
+const FOLDER = "njemacki";
+
+function displayName(filename) {
+  return filename.replace(/\.html?$/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, c => c.toLocaleUpperCase("hr"));
+}
+
+async function loadTests() {
+  const status = document.getElementById("status");
+  const list = document.getElementById("tests");
+  try {
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FOLDER}?ref=${BRANCH}`;
+    const response = await fetch(url, {
+      headers: {"Accept": "application/vnd.github+json"}
+    });
+    if (!response.ok) {
+      throw new Error(response.status === 404
+        ? "Mapa nije pronađena. Provjeri naziv mape i granu repozitorija."
+        : "GitHub API trenutačno nije dostupan. Pokušaj ponovno.");
+    }
+    const files = await response.json();
+    const pages = files
+      .filter(file => file.type === "file" &&
+        /\.html?$/i.test(file.name) &&
+        !/^index\.html?$/i.test(file.name))
+      .sort((a,b) => a.name.localeCompare(b.name, "hr",
+        {numeric:true, sensitivity:"base"}));
+
+    if (pages.length === 0) {
+      status.textContent = "Još nema objavljenih HTML materijala u ovoj mapi.";
+      return;
+    }
+
+    status.textContent = `Pronađeno materijala: ${pages.length}`;
+    pages.forEach(file => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = "./" + encodeURIComponent(file.name);
+      a.textContent = displayName(file.name);
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+  } catch (error) {
+    status.classList.add("error");
+    status.textContent = error.message;
+  }
+}
+loadTests();
+</script>
+</body>
+</html>
