@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Njemački – glagoli u prezentu</title>
+<style>
+:root{--blue:#2457a7;--pale:#eef4ff;--green:#16834a;--red:#c43d3d;--ink:#202938}
+*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+.wrap{max-width:850px;margin:28px auto;padding:0 16px}.sheet{background:white;border-radius:18px;padding:28px;box-shadow:0 8px 28px #1d355710}
+h1{font-size:clamp(24px,4vw,32px);margin:0 0 8px;color:#173d78}.intro{color:#536174;margin:0 0 22px;line-height:1.5}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;background:var(--pale);padding:13px 16px;border-radius:12px;margin-bottom:20px;font-weight:700}
+.progress{height:8px;background:#e5eaf2;border-radius:20px;overflow:hidden;margin:0 0 20px}.bar{height:100%;width:0;background:var(--blue);transition:width .2s}
+.question{display:grid;grid-template-columns:32px 1fr;gap:10px;padding:15px 0;border-bottom:1px solid #e8edf4;align-items:center}
+.num{font-weight:bold;color:#718096}.sentence{font-size:17px;line-height:1.8}.verb{font-size:14px;color:#65748a;white-space:nowrap}
+input.answer{width:145px;max-width:42vw;border:0;border-bottom:2px solid #9aa9bd;border-radius:3px;padding:5px 7px;font-size:17px;color:#172b4d;background:#fbfcff;outline:none;text-align:center}
+input.answer:focus{border-color:var(--blue);background:#f3f7ff}input.answer.correct{border-color:var(--green);background:#e9f8ef;color:#116638}input.answer.wrong{border-color:var(--red);background:#fff0f0;color:#a62929}
+.feedback{font-size:13px;margin-left:7px;font-weight:700}.feedback.good{color:var(--green)}.feedback.bad{color:var(--red)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}button{border:0;border-radius:10px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer}button.primary{background:var(--blue);color:white}button.secondary{background:#e9eef6;color:#26364d}button:hover{filter:brightness(.96)}
+#result{display:none;margin-top:22px;padding:20px;border-radius:13px;background:#eef4ff;text-align:center}#score{font-size:28px;font-weight:800;color:#173d78;margin:4px}
+.small{font-size:13px;color:#69778a;margin-top:10px}
+@media(max-width:540px){.sheet{padding:20px 16px}.question{grid-template-columns:25px 1fr;gap:6px}.sentence{font-size:16px}.verb{display:block;margin-top:3px}input.answer{width:120px}}
+</style>
+</head>
+<body>
+<div class="wrap"><main class="sheet">
+<h1>Ergänze die Verben!</h1>
+<p class="intro">Dopuni rečenice pravilnim oblikom glagola u prezentu (Präsens). Upiši samo glagol koji nedostaje. Povratnu informaciju dobivaš odmah.</p>
+<div class="top"><span>Njemački jezik · 5. razred</span><span id="counter">Točno: 0 / 20</span></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div id="questions"></div>
+<div class="actions"><button class="primary" id="finish">Završi test</button><button class="secondary" id="reset">Pokušaj ponovno</button></div>
+<div id="result"><div>Rezultat testa</div><div id="score"></div><div id="message"></div></div>
+<p class="small">Savjet: pripazi na nastavke glagola i promjene samoglasnika u 2. i 3. licu jednine.</p>
+</main></div>
+<script>
+// Rjesenja su pohranjena kodirano, a ne kao obican tekst.
+const encoded='bGVybnN0fHNwaWVsZXxow7ZydHxiaXN0fG1hY2hlfGtvbW10fGlzdHxyZW5udHxtYWNoc3R8c3ByaWNoc3R8d29obmVufHNwaWVsZW58aGF0fGtvbW10fGVzc2V8bGllc3R8bGF1ZnR8ZXJrbMOkcnR8aMO2cnN0fHNjaHdpbW1lbg==';
+const answers=atob(encoded).split('|');
+const tasks=[
+['Was ___ du?','(lernen)'],
+['Ich ___ Computerspiele.','(spielen)'],
+['Mein Bruder ___ Musik.','(hören)'],
+['Wo ___ du? – Im Park.','(sein)'],
+['Ich ___ meine Hausaufgaben.','(machen)'],
+['Woher ___ Alicia?','(kommen)'],
+['Wie alt ___ dein Papa?','(sein)'],
+['Lena ___ gern.','(rennen)'],
+['Was ___ du gern?','(machen)'],
+['Du ___ sehr gut Deutsch.','(sprechen)'],
+['Meine Eltern ___ in Zagreb.','(wohnen)'],
+['Wir ___ heute Fussball.','(spielen)'],
+['Er ___ einen Hund.','(haben)'],
+['Wann ___ ihr nach Hause?','(kommen)'],
+['Ich ___ gern Pizza.','(essen)'],
+['Lisa ___ ein Buch.','(lesen)'],
+['Ihr ___ sehr schnell.','(laufen)'],
+['Der Lehrer ___ die Aufgabe.','(erklären)'],
+['___ du gern Musik?','(hören)'],
+['Wir ___ im Sommer im Meer.','(schwimmen)']
+];
+const host=document.getElementById('questions');
+tasks.forEach((t,i)=>{const row=document.createElement('div');row.className='question';row.innerHTML=`<div class="num">${i+1}.</div><div class="sentence"><span class="prompt"></span> <span class="verb"></span><span class="feedback" aria-live="polite"></span></div>`;row.querySelector('.prompt').textContent=t[0].split('___')[0];const tail=t[0].split('___')[1]||'';const input=document.createElement('input');input.className='answer';input.type='text';input.autocomplete='off';input.autocapitalize='none';input.spellcheck=false;input.setAttribute('aria-label',`Odgovor ${i+1}`);input.dataset.index=i;row.querySelector('.sentence').insertBefore(input,row.querySelector('.verb'));row.querySelector('.verb').textContent=tail+' '+t[1];input.addEventListener('input',()=>check(input,i));host.appendChild(row)});
+function check(input,i){const value=input.value.trim().toLocaleLowerCase('de-DE');const fb=input.parentElement.querySelector('.feedback');input.classList.remove('correct','wrong');fb.className='feedback';if(!value){fb.textContent='';update();return}if(value===answers[i].toLocaleLowerCase('de-DE')){input.classList.add('correct');fb.textContent='✓ Točno';fb.classList.add('good')}else{input.classList.add('wrong');fb.textContent='✗ Pokušaj ponovno';fb.classList.add('bad')}update()}
+function update(){const fields=[...document.querySelectorAll('input.answer')];const good=fields.filter((x,i)=>x.value.trim().toLocaleLowerCase('de-DE')===answers[i].toLocaleLowerCase('de-DE')).length;document.getElementById('counter').textContent=`Točno: ${good} / 20`;document.getElementById('bar').style.width=(good/20*100)+'%';return good}
+document.getElementById('finish').addEventListener('click',()=>{const fields=[...document.querySelectorAll('input.answer')];fields.forEach((x,i)=>check(x,i));const good=update();document.getElementById('score').textContent=`${good} / 20`;document.getElementById('message').textContent=good===20?'Ausgezeichnet! Sve je točno!':good>=15?'Sehr gut! Odličan trud!':good>=10?'Dobro, ali još malo vježbaj.':'Nastavi vježbati – možeš ti to!';document.getElementById('result').style.display='block';document.getElementById('result').scrollIntoView({behavior:'smooth',block:'center'})});
+document.getElementById('reset').addEventListener('click',()=>{document.querySelectorAll('input.answer').forEach(x=>{x.value='';x.classList.remove('correct','wrong');x.parentElement.querySelector('.feedback').textContent='';x.parentElement.querySelector('.feedback').className='feedback'});document.getElementById('result').style.display='none';update();window.scrollTo({top:0,behavior:'smooth'})});
+</script>
+</body></html>
