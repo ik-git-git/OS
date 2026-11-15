@@ -36,7 +36,7 @@ input.answer:focus{border-color:var(--blue);background:#f3f7ff}input.answer.corr
 <script>
 // Rjesenja su pohranjena kodirano, a ne kao obican tekst.
 const encoded='bGVybnN0fHNwaWVsZXxow7ZydHxiaXN0fG1hY2hlfGtvbW10fGlzdHxyZW5udHxtYWNoc3R8c3ByaWNoc3R8d29obmVufHNwaWVsZW58aGF0fGtvbW10fGVzc2V8bGllc3R8bGF1ZnR8ZXJrbMOkcnR8aMO2cnN0fHNjaHdpbW1lbg==';
-const answers=atob(encoded).split('|');
+const answers=new TextDecoder('utf-8').decode(Uint8Array.from(atob(encoded), c => c.charCodeAt(0))).split('|');
 const tasks=[
 ['Was ___ du?','(lernen)'],
 ['Ich ___ Computerspiele.','(spielen)'],
